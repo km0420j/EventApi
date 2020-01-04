@@ -7,8 +7,10 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.hateoas.MediaTypes;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -18,11 +20,11 @@ import java.time.LocalDateTime;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest //Web과 관련된 Bean이 등록됨
+//@WebMvcTest// Slice Test. Web MVC를 테스트 하기 위한 Bean들만이 등록됨
+@SpringBootTest
 @AutoConfigureMockMvc
 public class EventControllerTest {
 
@@ -53,6 +55,7 @@ public class EventControllerTest {
                 .location("D Start up Factory")
                 .build();
 
+        //org.springframework.web.util.NestedServletException: Request processing failed; nested exception is java.lang.NullPointerException
         event.setId(10);
         Mockito.when(eventRepository.save(event)).thenReturn(event);
 
@@ -63,7 +66,11 @@ public class EventControllerTest {
                         .content(objectMapper.writeValueAsString(event)))
                 .andDo(print())
                 .andExpect(status().isCreated()) //201 = created
-                .andExpect(jsonPath("id").exists());
+                .andExpect(jsonPath("id").exists())
+                .andExpect(header().exists(HttpHeaders.LOCATION))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE));
+
+
 
 
     }
