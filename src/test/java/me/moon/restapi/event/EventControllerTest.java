@@ -1,6 +1,7 @@
 package me.moon.restapi.event;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -36,13 +37,14 @@ public class EventControllerTest {
     @Autowired
     ObjectMapper objectMapper;
 
-    @MockBean
+    // @MockBean
     EventRepository eventRepository;
 
     @Test
     public void createEvent() throws Exception{
 
         Event event = Event.builder()
+                .id(100)
                 .name("Spring")
                 .description("REST API Development")
                 .beginEnrollmentDateTime(LocalDateTime.of(2010, 11, 23, 14, 23))
@@ -53,11 +55,16 @@ public class EventControllerTest {
                 .maxPrice(200)
                 .limitOfEnrollment(100)
                 .location("D Start up Factory")
+                .free(true)
+                .offline(false)
+                .eventStatus(EventStatus.PUBLISHED)
                 .build();
 
+
         //org.springframework.web.util.NestedServletException: Request processing failed; nested exception is java.lang.NullPointerException
-        event.setId(10);
-        Mockito.when(eventRepository.save(event)).thenReturn(event);
+
+        //EventDto에 대해서는 Mocking이 적용안됨. 아래 코드는 event객체에 대해서니까.
+        //Mockito.when(eventRepository.save(event)).thenReturn(event);
 
 
         mockMvc.perform(post("/api/events/")
@@ -68,8 +75,9 @@ public class EventControllerTest {
                 .andExpect(status().isCreated()) //201 = created
                 .andExpect(jsonPath("id").exists())
                 .andExpect(header().exists(HttpHeaders.LOCATION))
-                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE));
-
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
+                .andExpect(jsonPath("free").value(Matchers.not(true)))
+                .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT));
 
 
 
