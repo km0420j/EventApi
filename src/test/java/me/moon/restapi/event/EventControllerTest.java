@@ -1,6 +1,7 @@
 package me.moon.restapi.event;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.moon.restapi.common.TestDescription;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,6 +42,7 @@ public class EventControllerTest {
     EventRepository eventRepository;
 
     @Test
+    @TestDescription("정상적으로 이벤트를 발생시켰을때")
     public void createEvent() throws Exception{
 
         Event event = Event.builder()
@@ -84,6 +86,7 @@ public class EventControllerTest {
     }
 
     @Test
+    @TestDescription("입력 값이 비어있는 경우에 에러가 발생")
     public void createEvent_BadRequest_EmptyInput() throws Exception {
         EventDto eventDto = EventDto.builder().build();
 
@@ -94,6 +97,31 @@ public class EventControllerTest {
                 .andExpect(status().isBadRequest());
 
     }
+
+    @Test
+    @TestDescription("입력 값이 비어있는 경우에 에러가 발생")
+    public void createEvent_BadRequest_WrongInput() throws Exception {
+        EventDto eventDto = EventDto.builder()
+                .name("Spring")
+                .description("REST API Development")
+                .beginEnrollmentDateTime(LocalDateTime.of(2010, 11, 23, 14, 23))
+                .closeEnrollmentDateTime(LocalDateTime.of(2018, 11, 30, 14, 23))
+                .beginEventDateTime(LocalDateTime.of(2018, 12, 5, 14, 30))
+                .endEventDateTime(LocalDateTime.of(2018, 12, 6, 14, 30))
+                .basePrice(100)
+                .maxPrice(200)
+                .limitOfEnrollment(100)
+                .build();
+
+        this.mockMvc.perform(post("/api/events")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(this.objectMapper.writeValueAsString(eventDto)))
+
+                .andExpect(status().isBadRequest());
+
+    }
+
+
 
 
 
