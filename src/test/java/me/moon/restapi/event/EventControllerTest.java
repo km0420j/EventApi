@@ -99,7 +99,7 @@ public class EventControllerTest {
     }
 
     @Test
-    @TestDescription("입력 값이 비어있는 경우에 에러가 발생")
+    @TestDescription("입력 값이 잘못된 경우에 에러가 발생")
     public void createEvent_BadRequest_WrongInput() throws Exception {
         EventDto eventDto = EventDto.builder()
                 .name("Spring")
@@ -108,7 +108,7 @@ public class EventControllerTest {
                 .closeEnrollmentDateTime(LocalDateTime.of(2018, 11, 30, 14, 23))
                 .beginEventDateTime(LocalDateTime.of(2018, 12, 5, 14, 30))
                 .endEventDateTime(LocalDateTime.of(2018, 12, 6, 14, 30))
-                .basePrice(100)
+                .basePrice(10000)
                 .maxPrice(200)
                 .limitOfEnrollment(100)
                 .build();
@@ -116,8 +116,14 @@ public class EventControllerTest {
         this.mockMvc.perform(post("/api/events")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(this.objectMapper.writeValueAsString(eventDto)))
+                .andDo(print())           // 응답 에러 메세지 출력
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$[0].objectName").exists())  /* Errors에 있음, 그러나 errors를 직렬화 할 수 있는 serializer가 없기 때문에 런타임 에러*/
+               // .andExpect(jsonPath("$[0].field").exists())
+                .andExpect(jsonPath("$[0].defaultMessage").exists())
+                .andExpect(jsonPath("$[0].code").exists())
+                .andExpect(jsonPath("$[0].rejectValue").exists());
 
-                .andExpect(status().isBadRequest());
 
     }
 
